@@ -72,7 +72,7 @@ class ScreenCursorMonitor:
                                       cv2.cvtColor(new_cursor, cv2.COLOR_BGR2GRAY))
 
             # Sensitivity tuning
-            screen_change = screen_diff.mean() > 0.5
+            screen_change = screen_diff.mean() > 0.3
             cursor_change = cursor_diff.mean() > 1  
 
             if screen_change:

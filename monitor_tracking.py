@@ -11,26 +11,22 @@ class ScreenCursorMonitor:
         Initialize the monitor with a defined bounding box (region).
         :param region: A dictionary defining 'top', 'left', 'width', and 'height'.
         """
-        self.region = region if region else self.select_roi()  # Ask user for ROI if none is provided
+        self.region = region if region else self.get_full_screen_roi()  
         print(f"Monitoring region: {self.region}")
         
         self.prev_screen = self.capture_screen()
         self.prev_cursor = self.capture_cursor_area()
 
-    def select_roi(self):
-        """Allows the user to manually select an ROI using mouse position."""
-        input("Move your mouse to the **top-left** corner of the ROI and press Enter...")
-        x1, y1 = pyautogui.position()
-
-        input("Move your mouse to the **bottom-right** corner of the ROI and press Enter...")
-        x2, y2 = pyautogui.position()
-
-        return {
-            "top": min(y1, y2),
-            "left": min(x1, x2),
-            "width": abs(x2 - x1),
-            "height": abs(y2 - y1)
-        }
+    def get_full_screen_roi(self):
+        """Automatically sets the ROI to cover the full primary monitor."""
+        with mss.mss() as sct:
+            monitor = sct.monitors[1]  # Primary monitor (index 1)
+            return {
+                "top": monitor["top"],
+                "left": monitor["left"],
+                "width": monitor["width"],
+                "height": monitor["height"]
+            }
 
     def capture_screen(self):
         """Capture only the defined region of the screen."""

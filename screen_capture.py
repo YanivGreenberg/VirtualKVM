@@ -7,14 +7,20 @@ class ScreenCapture:
         self.region = region if region else self.get_full_screen_roi()
 
     def get_full_screen_roi(self):
-        """Automatically sets the ROI to cover the full primary monitor."""
+        """Automatically sets the ROI to cover all connected monitors."""
         with mss.mss() as sct:
-            monitor = sct.monitors[1]  # Primary monitor (index 1)
+            monitors = sct.monitors[1:] 
+            
+            left = min(monitor["left"] for monitor in monitors)
+            top = min(monitor["top"] for monitor in monitors)
+            right = max(monitor["left"] + monitor["width"] for monitor in monitors)
+            bottom = max(monitor["top"] + monitor["height"] for monitor in monitors)
+            
             return {
-                "top": monitor["top"],
-                "left": monitor["left"],
-                "width": monitor["width"],
-                "height": monitor["height"]
+                "top": top,
+                "left": left,
+                "width": right - left,
+                "height": bottom - top
             }
 
     def capture(self):

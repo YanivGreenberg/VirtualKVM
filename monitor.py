@@ -18,13 +18,13 @@ class ScreenCursorMonitor:
         self.prev_screen = self.screen_capture.capture()
         self.prev_cursor = self.mouse_capture.capture_cursor_area()
 
-        self.running = False  # Flag to control the monitoring loop
-        self.thread = None  # Thread reference
+        self.running = False  
+        self.thread = None  
 
     def detect_changes(self):
         """Continuously monitors for screen and cursor changes."""
         while self.running:
-            time.sleep(0.1)  # Adjust for performance
+            time.sleep(0.1)  
 
             new_screen = self.screen_capture.capture()
             new_cursor = self.mouse_capture.capture_cursor_area()
@@ -35,7 +35,6 @@ class ScreenCursorMonitor:
             if self.cursor_detector.has_changed(self.prev_cursor, new_cursor):
                 print("Cursor moved inside ROI!")
 
-            # Update previous frames
             self.prev_screen = new_screen
             self.prev_cursor = new_cursor
 
@@ -51,5 +50,5 @@ class ScreenCursorMonitor:
         """Stops the monitoring loop."""
         self.running = False
         if self.thread:
-            self.thread.join()  # Ensure the thread finishes execution
+            self.thread.join()  
             print("Monitoring stopped.")

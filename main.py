@@ -13,7 +13,6 @@ if __name__ == "__main__":
     monitor.start_monitoring()
 
     try:
-        # Keep the program running until user input
         while True:
             command = input("Enter 1 to stop the program: ")
             if command == "1":

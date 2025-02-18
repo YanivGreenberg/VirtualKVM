@@ -23,15 +23,10 @@ class ScreenEdgeDetector:
         self.width = region["width"]
         self.height = region["height"]
     
-    def on_move(self, x, y, velocity_x, velocity_y):
-        left, right, down, up = False, False, False, False
-        if x <= self.threshold and velocity_x < 0:
-            left = True
-        elif x >= self.width - self.threshold and velocity_x > 0:
-            right = True
-        if y <= self.threshold and velocity_y < 0:
-            up = True
-        elif y >= self.height - self.threshold and velocity_y > 0:
-            down = True
+    def detect_moving_to_edge(self, x, y, velocity_x, velocity_y):
+        left = x <= self.threshold and velocity_x < 0
+        right = not left and (x >= self.width - self.threshold and velocity_x > 0)
+        up = y <= self.threshold and velocity_y < 0
+        down = not up and (y >= self.height - self.threshold and velocity_y > 0)
         return left,right,up,down
         

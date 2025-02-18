@@ -43,7 +43,7 @@ class ScreenCursorMonitor:
             if self.cursor_detector.has_changed(self.prev_cursor, new_cursor):
                 print("Cursor moved inside ROI!")
                 velocity_x, velocity_y = self.cursor_tracker.get_velocity()
-                self.left_side,self.right_side,self.up_side,self.down_side = screen_edge_detector.on_move(self.cursor_tracker.prev_x,self.cursor_tracker.prev_y,velocity_x,velocity_y)
+                self.left_side,self.right_side,self.up_side,self.down_side = screen_edge_detector.detect_moving_to_edge(self.cursor_tracker.prev_x,self.cursor_tracker.prev_y,velocity_x,velocity_y)
                 print(f"left {self.left_side}, right {self.right_side}, up {self.up_side}, down {self.down_side}")
 
 

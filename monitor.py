@@ -1,8 +1,9 @@
 import time
 import threading
+from change_detection import ScreenEdgeDetector
 
 class ScreenCursorMonitor:
-    def __init__(self, screen_capture, mouse_capture, screen_detector, cursor_detector):
+    def __init__(self, screen_capture, mouse_capture, screen_detector, cursor_detector,cursor_tracker):
         """
         Monitors screen and cursor for changes.
         :param screen_capture: Handles screen capturing
@@ -14,15 +15,22 @@ class ScreenCursorMonitor:
         self.mouse_capture = mouse_capture
         self.screen_detector = screen_detector
         self.cursor_detector = cursor_detector
+        self.cursor_tracker = cursor_tracker
 
         self.prev_screen = self.screen_capture.capture()
         self.prev_cursor = self.mouse_capture.capture_cursor_area()
+
+        self.left_side = False
+        self.right_side = False
+        self.up_side = False
+        self.down_side = False
 
         self.running = False  
         self.thread = None  
 
     def detect_changes(self):
         """Continuously monitors for screen and cursor changes."""
+        screen_edge_detector = ScreenEdgeDetector(10,self.screen_capture.region)
         while self.running:
             time.sleep(0.1)  
 
@@ -34,6 +42,10 @@ class ScreenCursorMonitor:
 
             if self.cursor_detector.has_changed(self.prev_cursor, new_cursor):
                 print("Cursor moved inside ROI!")
+                velocity_x, velocity_y = self.cursor_tracker.get_velocity()
+                self.left_side,self.right_side,self.up_side,self.down_side = screen_edge_detector.on_move(self.cursor_tracker.prev_x,self.cursor_tracker.prev_y,velocity_x,velocity_y)
+                print(f"left {self.left_side}, right {self.right_side}, up {self.up_side}, down {self.down_side}")
+
 
             self.prev_screen = new_screen
             self.prev_cursor = new_cursor

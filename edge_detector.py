@@ -19,19 +19,19 @@ class ScreenEdgeDetector(Subject):
         self.width = region["width"]
         self.height = region["height"]
 
-    @classmethod
+    @staticmethod
     def notify(cls, direction):
         """Notify all subscribers (observers) with the given direction."""
         for sub in cls.subscribers:
             sub.update(direction) 
 
-    @classmethod
+    @staticmethod
     def attach(cls, observer):
         """Attach an observer to the subject (if not already attached)."""
         if observer not in cls.subscribers:
             cls.subscribers.append(observer)
 
-    @classmethod
+    @staticmethod
     def detach(cls, observer):
         """Detach an observer from the subject (if attached)."""
         if observer in cls.subscribers:

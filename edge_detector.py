@@ -20,22 +20,22 @@ class ScreenEdgeDetector(Subject):
         self.height = region["height"]
 
     @staticmethod
-    def notify(cls, direction):
+    def notify(direction):
         """Notify all subscribers (observers) with the given direction."""
-        for sub in cls.subscribers:
+        for sub in ScreenEdgeDetector.subscribers:
             sub.update(direction) 
 
     @staticmethod
-    def attach(cls, observer):
+    def attach(observer):
         """Attach an observer to the subject (if not already attached)."""
-        if observer not in cls.subscribers:
-            cls.subscribers.append(observer)
+        if observer not in ScreenEdgeDetector.subscribers:
+            ScreenEdgeDetector.subscribers.append(observer)
 
     @staticmethod
-    def detach(cls, observer):
+    def detach(observer):
         """Detach an observer from the subject (if attached)."""
-        if observer in cls.subscribers:
-            cls.subscribers.remove(observer)
+        if observer in ScreenEdgeDetector.subscribers:
+            ScreenEdgeDetector.subscribers.remove(observer)
 
     def detect_moving_to_edge(self, x, y, velocity_x, velocity_y):
         if x <= self.threshold and velocity_x < 0:

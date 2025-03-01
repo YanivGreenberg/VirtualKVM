@@ -4,6 +4,7 @@ from edge_detector import ScreenEdgeDetector
 from pynput import mouse
 from observer import Observer
 from mouse_tracker import MouseTracker
+from edge_detector import Direction
 
 
 class ScreenCursorMonitor(Observer):
@@ -14,11 +15,13 @@ class ScreenCursorMonitor(Observer):
         self.thread = None  
     
     def update(self,direction):
-        if direction == 1:
+        if direction == Direction.LEFT:
             pass
-        elif direction == 2:
+        elif direction == Direction.RIGHT:
             pass
-        elif direction == 3:
+        elif direction == Direction.UP:
+            pass
+        elif direction == Direction.DOWN:
             pass
         else:
             pass

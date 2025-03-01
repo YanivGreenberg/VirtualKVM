@@ -1,17 +1,27 @@
-from screen_capture import ScreenCapture
-from mouse_capture import MouseCapture
-from change_detection import BasicChangeDetection
+from edge_detector import ScreenEdgeDetector
 from monitor import ScreenCursorMonitor
-from mouse_tracker import MouseTracker
+import mss
+
+def get_full_screen_roi():
+    """Automatically sets the ROI to cover all connected monitors."""
+    with mss.mss() as sct:
+        monitors = sct.monitors[1:] 
+        
+        left = min(monitor["left"] for monitor in monitors)
+        top = min(monitor["top"] for monitor in monitors)
+        right = max(monitor["left"] + monitor["width"] for monitor in monitors)
+        bottom = max(monitor["top"] + monitor["height"] for monitor in monitors)
+        
+        return {
+            "top": top,
+            "left": left,
+            "width": right - left,
+            "height": bottom - top
+        }
 
 if __name__ == "__main__":
-    screen_capture = ScreenCapture()  # Capturing service
-    mouse_capture = MouseCapture(screen_capture.region)  # Cursor capture service
-    screen_detector = BasicChangeDetection(threshold=0.3)  # Screen change detection
-    cursor_detector = BasicChangeDetection(threshold=1)  # Cursor change detection
-    cursor_tracker = MouseTracker()
-
-    monitor = ScreenCursorMonitor(screen_capture, mouse_capture, screen_detector, cursor_detector,cursor_tracker)
+    monitor = ScreenCursorMonitor(get_full_screen_roi())
+    ScreenEdgeDetector.attach(monitor)
     monitor.start_monitoring()
 
     try:

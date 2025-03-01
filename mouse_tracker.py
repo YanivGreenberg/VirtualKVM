@@ -7,9 +7,8 @@ class MouseTracker:
         self.prev_x, self.prev_y = None, None
         self.prev_time = None
 
-    def get_velocity(self):
+    def get_velocity(self,x,y):
         """Calculates velocity based on the current and previous mouse position."""
-        x, y = pyautogui.position()
         current_time = time.time()
 
         

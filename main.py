@@ -2,6 +2,7 @@ from edge_detector import ScreenEdgeDetector
 from monitor import ScreenCursorMonitor
 import mss
 
+
 def get_full_screen_roi():
     """Automatically sets the ROI to cover all connected monitors."""
     with mss.mss() as sct:
@@ -18,6 +19,7 @@ def get_full_screen_roi():
             "width": right - left,
             "height": bottom - top
         }
+
 
 if __name__ == "__main__":
     monitor = ScreenCursorMonitor(get_full_screen_roi())

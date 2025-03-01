@@ -5,6 +5,7 @@ from pynput import mouse
 from observer import Observer
 from mouse_tracker import MouseTracker
 
+
 class ScreenCursorMonitor(Observer):
     def __init__(self,region):
         self.cursor_tracker = MouseTracker()

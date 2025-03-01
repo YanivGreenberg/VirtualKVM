@@ -1,11 +1,12 @@
-from enum import Enum
+from enum import Enum,auto
 from observer import Subject
 
 class Direction(Enum):
-    RIGHT = 1
-    LEFT = 2
-    DOWN = 3
-    UP = 4
+
+    RIGHT = auto()
+    LEFT = auto()
+    DOWN = auto()
+    UP = auto()
 
 class ScreenEdgeDetector(Subject):
 

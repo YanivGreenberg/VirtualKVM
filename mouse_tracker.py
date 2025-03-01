@@ -1,6 +1,7 @@
 import time
 import pyautogui
 
+
 class MouseTracker:
     def __init__(self):
         """Handles tracking the mouse position and calculating velocity."""

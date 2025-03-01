@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
 
+
 class Observer(ABC):
     @abstractmethod
     def update(self, message):
         pass
+
 
 class Subject(ABC):
     @abstractmethod
@@ -17,5 +19,3 @@ class Subject(ABC):
     @abstractmethod
     def notify(self):
         pass
-
-        

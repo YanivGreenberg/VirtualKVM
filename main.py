@@ -1,6 +1,7 @@
 from edge_detector import ScreenEdgeDetector
 from monitor import ScreenCursorMonitor
 import mss
+from edge_detector import Direction
 
 
 def get_full_screen_roi():
@@ -22,7 +23,7 @@ def get_full_screen_roi():
 
 
 if __name__ == "__main__":
-    monitor = ScreenCursorMonitor(get_full_screen_roi())
+    monitor = ScreenCursorMonitor(get_full_screen_roi(), Direction.LEFT)
     ScreenEdgeDetector.attach(monitor)
     monitor.start_monitoring()
 

@@ -28,3 +28,6 @@ class MouseTracker:
         self.prev_x, self.prev_y, self.prev_time = x, y, current_time
 
         return velocity_x, velocity_y
+    
+    def delta_x_and_y(self,locked_x,locked_y,x,y):
+        return (x - locked_x), (y - locked_y)

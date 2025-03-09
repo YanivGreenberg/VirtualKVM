@@ -18,6 +18,8 @@ class ScreenCursorMonitor(Observer):
         self.border = border
         self.mouse_controller = None
         self.listener = None
+        self.locked_x = None
+        self.locked_y = None
         
         # Load the DLL
         dll_name = r'mouse_control.dll'
@@ -30,26 +32,23 @@ class ScreenCursorMonitor(Observer):
 
         # Set the callback function type
         CALLBACK_TYPE = ctypes.CFUNCTYPE(None, ctypes.c_int, ctypes.c_int)
-        self.mouse_callback_func = self.python_callback #assign function to class variable.
+        self.mouse_callback_func = self.on_mouse_move #assign function to class variable.
         self.mouse_callback = CALLBACK_TYPE(self.mouse_callback_func) #assign ctypes object to class variable.
 
         # Set the callback in the DLL
         self.mouse_lib.SetMouseCallback(self.mouse_callback)
 
         # Start a timer to enable the mouse after 30 seconds
-        timer = threading.Timer(25, lambda: self.mouse_lib.EnableMouse(True))
+        timer = threading.Timer(25, lambda: (self.mouse_lib.EnableMouse(True), self.on_switch_monitor()))
         timer.start()
 
 
-    def python_callback(self, x, y):
-        try:
-            print(f"{x},{y}")
-        except Exception as e:
-            print(f"Error in python_callback: {e}")
-
     def update(self, direction):
         if self.border == direction:
-            self.mouse_lib.EnableMouse(False)
+            if not self.block_mouse:
+                self.mouse_lib.EnableMouse(False)
+                self.on_switch_monitor()
+
 
     def start_monitoring(self):
         """Runs detection in a background thread."""
@@ -59,18 +58,28 @@ class ScreenCursorMonitor(Observer):
             self.listener.start()
             print("Monitoring started...")
 
+
     def stop_monitoring(self):
         """Stops the monitoring loop."""
         self.running = False
         if self.listener:
             self.listener.stop()  
-            print("Monitoring stopped.")
+        print("Monitoring stopped.")
 
 
     def on_mouse_move(self, x, y):
-        print(f"Mouse moved to: {x}, {y}")
+        if not self.block_mouse:
+            print(f"Mouse moved to: {x}, {y}")  
+            self.locked_x = x
+            self.locked_y = y
+        else:
+            delta_x, delta_y = self.cursor_tracker.delta_x_and_y(self.locked_x,self.locked_y,x,y)
+            print(f"delta x:{delta_x} delta y: {delta_y}")
+            
         velocity_x, velocity_y = self.cursor_tracker.get_velocity(x, y)
         self.screen_edge_detector.detect_moving_to_edge(x, y, velocity_x, velocity_y)
+
+
 
     def on_switch_monitor(self):
         self.block_mouse = not self.block_mouse

@@ -1,30 +1,54 @@
 import time
 import threading
 from edge_detector import ScreenEdgeDetector
-from pynput import mouse
 from observer import Observer
 from mouse_tracker import MouseTracker
-from edge_detector import Direction
+import ctypes
+import win32api
+import win32con
+from pynput import mouse
 
 
 class ScreenCursorMonitor(Observer):
-    def __init__(self,region):
+    def __init__(self, region, border):
         self.cursor_tracker = MouseTracker()
-        self.screen_edge_detector = ScreenEdgeDetector(10,region)
-        self.running = False  
-        self.thread = None  
-    
-    def update(self,direction):
-        if direction == Direction.LEFT:
-            pass
-        elif direction == Direction.RIGHT:
-            pass
-        elif direction == Direction.UP:
-            pass
-        elif direction == Direction.DOWN:
-            pass
-        else:
-            pass
+        self.screen_edge_detector = ScreenEdgeDetector(10, region)
+        self.running = False
+        self.block_mouse = False
+        self.border = border
+        self.mouse_controller = None
+        self.listener = None
+        self.locked_x = None
+        self.locked_y = None
+        
+        # Load the DLL
+        dll_name = r'mouse_control.dll'
+        dll_handle = win32api.LoadLibraryEx(dll_name, 0, win32con.LOAD_WITH_ALTERED_SEARCH_PATH)
+        self.mouse_lib = ctypes.WinDLL(dll_name, handle=dll_handle)
+
+        # Set the EnableMouse function argument types
+        self.mouse_lib.EnableMouse.argtypes = [ctypes.c_bool]
+        self.mouse_lib.EnableMouse.restype = None
+
+        # Set the callback function type
+        CALLBACK_TYPE = ctypes.CFUNCTYPE(None, ctypes.c_int, ctypes.c_int)
+        self.mouse_callback_func = self.on_mouse_move #assign function to class variable.
+        self.mouse_callback = CALLBACK_TYPE(self.mouse_callback_func) #assign ctypes object to class variable.
+
+        # Set the callback in the DLL
+        self.mouse_lib.SetMouseCallback(self.mouse_callback)
+
+        # Start a timer to enable the mouse after 30 seconds
+        timer = threading.Timer(25, lambda: (self.mouse_lib.EnableMouse(True), self.on_switch_monitor()))
+        timer.start()
+
+
+    def update(self, direction):
+        if self.border == direction:
+            if not self.block_mouse:
+                self.mouse_lib.EnableMouse(False)
+                self.on_switch_monitor()
+
 
     def start_monitoring(self):
         """Runs detection in a background thread."""
@@ -34,14 +58,29 @@ class ScreenCursorMonitor(Observer):
             self.listener.start()
             print("Monitoring started...")
 
+
     def stop_monitoring(self):
         """Stops the monitoring loop."""
         self.running = False
         if self.listener:
             self.listener.stop()  
-            print("Monitoring stopped.")
+        print("Monitoring stopped.")
 
-    def on_mouse_move(self,x, y):
-        print(x,y)
-        velocity_x, velocity_y = self.cursor_tracker.get_velocity(x,y)
-        self.screen_edge_detector.detect_moving_to_edge(x,y,velocity_x,velocity_y)
+
+    def on_mouse_move(self, x, y):
+        if not self.block_mouse:
+            print(f"Mouse moved to: {x}, {y}")  
+            self.locked_x = x
+            self.locked_y = y
+        else:
+            delta_x, delta_y = self.cursor_tracker.delta_x_and_y(self.locked_x,self.locked_y,x,y)
+            print(f"delta x:{delta_x} delta y: {delta_y}")
+            
+        velocity_x, velocity_y = self.cursor_tracker.get_velocity(x, y)
+        self.screen_edge_detector.detect_moving_to_edge(x, y, velocity_x, velocity_y)
+
+
+
+    def on_switch_monitor(self):
+        self.block_mouse = not self.block_mouse
+        print(self.block_mouse)

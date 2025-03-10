@@ -7,10 +7,10 @@ import ctypes
 import win32api
 import win32con
 from pynput import mouse
-
+import asyncio
 
 class ScreenCursorMonitor(Observer):
-    def __init__(self, region, border):
+    def __init__(self, region, border, data_queue):
         self.cursor_tracker = MouseTracker()
         self.screen_edge_detector = ScreenEdgeDetector(10, region)
         self.running = False
@@ -20,6 +20,10 @@ class ScreenCursorMonitor(Observer):
         self.listener = None
         self.locked_x = None
         self.locked_y = None
+        
+        self.data_queue = data_queue
+        self.loop = asyncio.get_running_loop() 
+
         
         # Load the DLL
         dll_name = r'mouse_control.dll'
@@ -74,7 +78,7 @@ class ScreenCursorMonitor(Observer):
             self.locked_y = y
         else:
             delta_x, delta_y = self.cursor_tracker.delta_x_and_y(self.locked_x,self.locked_y,x,y)
-            print(f"delta x:{delta_x} delta y: {delta_y}")
+            self.loop.call_soon_threadsafe(self.data_queue.put_nowait, ("mouse_move", delta_x, delta_y))
             
         velocity_x, velocity_y = self.cursor_tracker.get_velocity(x, y)
         self.screen_edge_detector.detect_moving_to_edge(x, y, velocity_x, velocity_y)

@@ -6,7 +6,7 @@ from edge_detector import Direction
 from main import get_full_screen_roi
 
 class Server:
-    def __init__(self, host='localhost', port=5555):
+    def __init__(self, host='0.0.0.0', port=5555):
         self.host = host
         self.port = port
         self.server = None

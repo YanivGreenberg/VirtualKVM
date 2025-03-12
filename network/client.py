@@ -1,15 +1,20 @@
 # client.py (asyncio)
 import asyncio
 from pynput.mouse import Controller
+from edge_detector import get_full_screen_roi
 
 class Client:
     def __init__(self):
         self.mouse_controller = Controller()
 
-    async def connect(self, host='localhost', port=5555):
+    async def connect(self, host='192.168.1.111', port=5555):
         try:
             self.reader, self.writer = await asyncio.open_connection(host, port)
             print(f"[*] Connected to server at {host}:{port}")
+            message = f"regin:{get_full_screen_roi()}".encode()
+            self.writer.write(message)
+            await self.writer.drain()
+
             await self.run()
         except ConnectionRefusedError:
             print(f"Error: Could not connect to {host}:{port}. Server may not be running.")

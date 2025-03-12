@@ -8,6 +8,7 @@ import win32api
 import win32con
 from pynput import mouse
 import asyncio
+import os.path
 
 class ScreenCursorMonitor(Observer):
     def __init__(self, region, border, data_queue):
@@ -27,6 +28,10 @@ class ScreenCursorMonitor(Observer):
         
         # Load the DLL
         dll_name = r'mouse_control.dll'
+        if os.path.exists(dll_name):
+            print(f"'{dll_name}' exists.")
+        else:
+            print(f"'{dll_name}' does not exist.")
         dll_handle = win32api.LoadLibraryEx(dll_name, 0, win32con.LOAD_WITH_ALTERED_SEARCH_PATH)
         self.mouse_lib = ctypes.WinDLL(dll_name, handle=dll_handle)
 

@@ -1,9 +1,8 @@
 # server.py (asyncio)
 import asyncio
-from edge_detector import ScreenEdgeDetector
+from edge_detector import ScreenEdgeDetector, get_full_screen_roi
 from monitor import ScreenCursorMonitor
 from edge_detector import Direction
-from main import get_full_screen_roi
 
 class Server:
     def __init__(self, host='localhost', port=5555):
@@ -15,6 +14,8 @@ class Server:
         self.mouse_tracker = ScreenCursorMonitor(region, Direction.LEFT, self.data_queue)
         ScreenEdgeDetector.attach(self.mouse_tracker)
         self.client_connected = False 
+        self.client_regin = None
+
 
     async def handle_client(self, reader, writer):
         addr = writer.get_extra_info('peername')
@@ -57,6 +58,14 @@ class Server:
                         mouse_move_data = f"mouse_move:{dx},{dy}\n".encode()
                         writer.write(mouse_move_data)
                         await writer.drain()
+                elif data_type == "mouse_set":
+                    rx, ry = data_values
+                    mouse_set_data = f"mouse_set:{rx},{ry}\n".encode()
+                    writer.write(mouse_set_data)
+                    await writer.drain()
+                elif data_type == "regin":
+                    self.client_regin = data_values
+                    print("clients regin was set")
                 #... handle other data types.
                 await asyncio.sleep(0.01)
         except asyncio.CancelledError:

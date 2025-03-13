@@ -10,7 +10,7 @@ MouseCallback callback = nullptr; // This will hold the Python callback
 
 bool is_locked = false;
 
-// Callback function to block mouse input
+
 LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
     if (nCode >= 0) {
         if (wParam == WM_MOUSEMOVE) {

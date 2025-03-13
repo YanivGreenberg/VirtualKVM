@@ -12,15 +12,16 @@ class Client:
         self.mouse_controller = Controller()
         self.border = None
         self.mouse_tracker = None
-        self.regin = get_full_screen_roi()
+        self.region = get_full_screen_roi()
         self.server_connected = False
+        self.data_queue = asyncio.Queue()
 
     async def connect(self, host='192.168.1.111', port=5555):
         try:
             self.reader, self.writer = await asyncio.open_connection(host, port)
             print(f"[*] Connected to server at {host}:{port}")
             self.server_connected = True
-            message = f"regin:{json.dumps(self.regin)}\n".encode()
+            message = f"region:{json.dumps(self.region)}\n".encode()
             self.writer.write(message)
             await self.writer.drain()
 
@@ -88,8 +89,9 @@ class Client:
                     self.border = Direction.DOWN
                 elif border == Direction.DOWN:
                     self.border = Direction.UP
-
-                self.mouse_tracker = ScreenCursorMonitor(self.region, self.border, self.data_queue, False)
+                if not self.mouse_tracker:
+                    self.mouse_tracker = ScreenCursorMonitor(self.region, self.border, self.data_queue, False)
+                    print(f"set tracker with border {self.border}")
                 self.mouse_tracker.start_monitoring()
                 asyncio.create_task(self.track_mouse_events())
             except Exception as e:

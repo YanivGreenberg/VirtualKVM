@@ -20,14 +20,13 @@ class ScreenCursorMonitor(Observer):
         self.border = border
         self.mouse_controller = None
         self.listener = None
-
+        self.data_queue = data_queue
+        self.loop = asyncio.get_running_loop() 
 
         if self.is_server:
             self.block_mouse = False
             self.locked_x = None
             self.locked_y = None
-            self.data_queue = data_queue
-            self.loop = asyncio.get_running_loop() 
             # Load the DLL
             dll_name = r'mouse_control.dll'
             if os.path.exists(dll_name):

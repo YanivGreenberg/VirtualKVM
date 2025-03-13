@@ -27,12 +27,19 @@ class Server:
         self.mouse_tracker.start_monitoring() #start monitoring.
 
         try:
+            message = f"border:{self.mouse_tracker.border}".encode()
+            writer.write(message)
+            await writer.drain()  
+        except Exception as e:
+            print(f"[*] Error: {e}")    
+        try:
             # First, explicitly read the initial client region message before entering the loop
             request = await reader.readline()
             if request:
                 request = request.decode().strip()
                 print(f"[*] Received initial request: {request}")
                 await self.handle_request(request, writer)
+  
 
             # Now start movement processing
             asyncio.create_task(self.send_movements(writer))
@@ -88,9 +95,9 @@ class Server:
             writer.write(mouse_pos_data)
             await writer.drain()
 
-        elif request.startswith("regin:"):
+        elif request.startswith("region:"):
             try:
-                region_data = request[len("regin:"):]  # Extract region JSON
+                region_data = request[len("region:"):]  # Extract region JSON
                 self.client_regin = json.loads(region_data)  # Convert string to dictionary
                 print(f"[*] Client region set: {self.client_regin}")
             except json.JSONDecodeError:

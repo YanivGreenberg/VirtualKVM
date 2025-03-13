@@ -81,13 +81,14 @@ class Client:
         elif message.startswith("border:"):
             try:
                 border = message[len("border:"):]
-                if border == Direction.LEFT:
+                print(f"border is: {border}")
+                if border == "Direction.LEFT":
                     self.border = Direction.RIGHT
-                elif border == Direction.RIGHT:
+                elif border == "Direction.RIGHT":
                     self.border = Direction.LEFT
-                elif border == Direction.UP:
+                elif border == "Direction.UP":
                     self.border = Direction.DOWN
-                elif border == Direction.DOWN:
+                elif border == "Direction.DOWN":
                     self.border = Direction.UP
                 if not self.mouse_tracker:
                     self.mouse_tracker = ScreenCursorMonitor(self.region, self.border, self.data_queue, False)

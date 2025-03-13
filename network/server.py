@@ -27,7 +27,7 @@ class Server:
         self.mouse_tracker.start_monitoring() #start monitoring.
 
         try:
-            message = f"border:{self.mouse_tracker.border}".encode()
+            message = f"border:{self.mouse_tracker.border}\n".encode()
             writer.write(message)
             await writer.drain()  
         except Exception as e:

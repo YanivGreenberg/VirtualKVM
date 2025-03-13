@@ -25,8 +25,8 @@ class ScreenCursorMonitor(Observer):
 
         if self.is_server:
             self.block_mouse = False
-            self.locked_x = None
-            self.locked_y = None
+            self.locked_x = 0
+            self.locked_y = 0
             # Load the DLL
             dll_name = r'mouse_control.dll'
             if os.path.exists(dll_name):
@@ -57,7 +57,6 @@ class ScreenCursorMonitor(Observer):
         if self.border == direction:
             if self.is_server:
                 if not self.block_mouse:
-                    self.mouse_lib.EnableMouse(False)
                     self.on_switch_monitor()
                     self.loop.call_soon_threadsafe(self.data_queue.put_nowait, ("mouse_set", self.locked_x, self.locked_y))
             else:
@@ -98,5 +97,6 @@ class ScreenCursorMonitor(Observer):
 
 
     def on_switch_monitor(self):
+        self.mouse_lib.EnableMouse(self.block_mouse)
         self.block_mouse = not self.block_mouse
         print(self.block_mouse)

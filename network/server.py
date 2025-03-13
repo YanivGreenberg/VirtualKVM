@@ -13,7 +13,7 @@ class Server:
         self.server = None
         self.data_queue = asyncio.Queue()  # Initialize the data queue
         self.region = get_full_screen_roi()
-        self.mouse_tracker = ScreenCursorMonitor(self.region, Direction.LEFT, self.data_queue)
+        self.mouse_tracker = ScreenCursorMonitor(self.region, Direction.LEFT, self.data_queue, True)
         ScreenEdgeDetector.attach(self.mouse_tracker)
         self.client_connected = False 
         self.client_regin = None
@@ -87,7 +87,7 @@ class Server:
             mouse_pos_data = f"mouse_set:100,200\n".encode()
             writer.write(mouse_pos_data)
             await writer.drain()
-            
+
         elif request.startswith("regin:"):
             try:
                 region_data = request[len("regin:"):]  # Extract region JSON
@@ -96,8 +96,8 @@ class Server:
             except json.JSONDecodeError:
                 print("[!] Error: Received invalid region data.")
 
-        elif request == "some_other_request":
-            pass
+        elif request == "switch":
+            self.mouse_tracker.on_switch_monitor()
         else:
             print(f"[*] Unknown request: {request}")
 

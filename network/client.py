@@ -3,17 +3,24 @@ import asyncio
 from pynput.mouse import Controller
 from position import  get_full_screen_roi
 import json
+from edge_detector import Direction
+from monitor import ScreenCursorMonitor
 
 
 class Client:
     def __init__(self):
         self.mouse_controller = Controller()
+        self.border = None
+        self.mouse_tracker = None
+        self.regin = get_full_screen_roi()
+        self.server_connected = False
 
     async def connect(self, host='192.168.1.111', port=5555):
         try:
             self.reader, self.writer = await asyncio.open_connection(host, port)
             print(f"[*] Connected to server at {host}:{port}")
-            message = f"regin:{json.dumps(get_full_screen_roi())}\n".encode()
+            self.server_connected = True
+            message = f"regin:{json.dumps(self.regin)}\n".encode()
             self.writer.write(message)
             await self.writer.drain()
 
@@ -70,6 +77,45 @@ class Client:
                     print("Invalid button click data from server.")
             except Exception as e:
                 print(f"Error clicking mouse: {e}")
+        elif message.startswith("border:"):
+            try:
+                border = message[len("border:"):]
+                if border == Direction.LEFT:
+                    self.border = Direction.RIGHT
+                elif border == Direction.RIGHT:
+                    self.border = Direction.LEFT
+                elif border == Direction.UP:
+                    self.border = Direction.DOWN
+                elif border == Direction.DOWN:
+                    self.border = Direction.UP
+
+                self.mouse_tracker = ScreenCursorMonitor(self.region, self.border, self.data_queue, False)
+                self.mouse_tracker.start_monitoring()
+                asyncio.create_task(self.track_mouse_events())
+            except Exception as e:
+                print(f"border error: {e}")
+                
+
+    async def track_mouse_events(self):
+        """ Monitors the mouse and sends messages only when needed. """
+        if not self.mouse_tracker:
+            return
+
+        while self.server_connected:
+            try:
+                data = await self.mouse_tracker.data_queue.get()  
+                data_type = data
+                if data_type == "switch":
+                    print(f"switching monitor")
+                    message = f"switch\n".encode()
+                    self.writer.write(message)
+                    await self.writer.drain()
+
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                print(f"Error in mouse tracking: {e}")
+
 
     async def close(self):
         if hasattr(self, 'writer') and self.writer:

@@ -57,6 +57,7 @@ class ScreenCursorMonitor(Observer):
             if not self.block_mouse:
                 self.mouse_lib.EnableMouse(False)
                 self.on_switch_monitor()
+                self.loop.call_soon_threadsafe(self.data_queue.put_nowait, ("mouse_set", self.locked_x, self.locked_y))
 
 
     def start_monitoring(self):
@@ -82,12 +83,13 @@ class ScreenCursorMonitor(Observer):
             self.locked_x = x
             self.locked_y = y
         else:
+            print(f"x:{x},y:{y}")
             delta_x, delta_y = self.cursor_tracker.delta_x_and_y(self.locked_x,self.locked_y,x,y)
-            self.loop.call_soon_threadsafe(self.data_queue.put_nowait, ("mouse_move", delta_x, delta_y))
+            if abs(delta_x) > 1 or abs(delta_y) > 1:
+                self.loop.call_soon_threadsafe(self.data_queue.put_nowait, ("mouse_move", delta_x, delta_y))
             
         velocity_x, velocity_y = self.cursor_tracker.get_velocity(x, y)
         self.screen_edge_detector.detect_moving_to_edge(x, y, velocity_x, velocity_y)
-
 
 
     def on_switch_monitor(self):

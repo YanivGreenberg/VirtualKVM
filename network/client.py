@@ -1,7 +1,9 @@
 # client.py (asyncio)
 import asyncio
 from pynput.mouse import Controller
-from edge_detector import get_full_screen_roi
+from position import  get_full_screen_roi
+import json
+
 
 class Client:
     def __init__(self):
@@ -11,7 +13,7 @@ class Client:
         try:
             self.reader, self.writer = await asyncio.open_connection(host, port)
             print(f"[*] Connected to server at {host}:{port}")
-            message = f"regin:{get_full_screen_roi()}".encode()
+            message = f"regin:{json.dumps(get_full_screen_roi())}\n".encode()
             self.writer.write(message)
             await self.writer.drain()
 

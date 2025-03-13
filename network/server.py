@@ -1,17 +1,19 @@
 # server.py (asyncio)
 import asyncio
-from edge_detector import ScreenEdgeDetector, get_full_screen_roi
+from edge_detector import ScreenEdgeDetector
 from monitor import ScreenCursorMonitor
 from edge_detector import Direction
+from position import  get_full_screen_roi, calculate_mouse_switch_position
+import json
 
 class Server:
-    def __init__(self, host='localhost', port=5555):
+    def __init__(self, host='0.0.0.0', port=5555):
         self.host = host
         self.port = port
         self.server = None
         self.data_queue = asyncio.Queue()  # Initialize the data queue
-        region = get_full_screen_roi()
-        self.mouse_tracker = ScreenCursorMonitor(region, Direction.LEFT, self.data_queue)
+        self.region = get_full_screen_roi()
+        self.mouse_tracker = ScreenCursorMonitor(self.region, Direction.LEFT, self.data_queue)
         ScreenEdgeDetector.attach(self.mouse_tracker)
         self.client_connected = False 
         self.client_regin = None
@@ -25,7 +27,16 @@ class Server:
         self.mouse_tracker.start_monitoring() #start monitoring.
 
         try:
+            # First, explicitly read the initial client region message before entering the loop
+            request = await reader.readline()
+            if request:
+                request = request.decode().strip()
+                print(f"[*] Received initial request: {request}")
+                await self.handle_request(request, writer)
+
+            # Now start movement processing
             asyncio.create_task(self.send_movements(writer))
+
             while True:
                 try:
                     request = await asyncio.wait_for(reader.readline(), timeout=0.1)
@@ -60,12 +71,10 @@ class Server:
                         await writer.drain()
                 elif data_type == "mouse_set":
                     rx, ry = data_values
-                    mouse_set_data = f"mouse_set:{rx},{ry}\n".encode()
+                    sx, sy = calculate_mouse_switch_position(rx,ry,self.region, self.client_regin)
+                    mouse_set_data = f"mouse_set:{sx},{sy}\n".encode()
                     writer.write(mouse_set_data)
                     await writer.drain()
-                elif data_type == "regin":
-                    self.client_regin = data_values
-                    print("clients regin was set")
                 #... handle other data types.
                 await asyncio.sleep(0.01)
         except asyncio.CancelledError:
@@ -78,6 +87,15 @@ class Server:
             mouse_pos_data = f"mouse_set:100,200\n".encode()
             writer.write(mouse_pos_data)
             await writer.drain()
+            
+        elif request.startswith("regin:"):
+            try:
+                region_data = request[len("regin:"):]  # Extract region JSON
+                self.client_regin = json.loads(region_data)  # Convert string to dictionary
+                print(f"[*] Client region set: {self.client_regin}")
+            except json.JSONDecodeError:
+                print("[!] Error: Received invalid region data.")
+
         elif request == "some_other_request":
             pass
         else:

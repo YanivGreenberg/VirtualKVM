@@ -3,7 +3,7 @@ import asyncio
 from pynput.mouse import Controller
 from position import  get_full_screen_roi
 import json
-from edge_detector import Direction
+from edge_detector import Direction, ScreenEdgeDetector
 from monitor import ScreenCursorMonitor
 
 
@@ -92,9 +92,10 @@ class Client:
                     self.border = Direction.UP
                 if not self.mouse_tracker:
                     self.mouse_tracker = ScreenCursorMonitor(self.region, self.border, self.data_queue, False)
+                    ScreenEdgeDetector.attach(self.mouse_tracker)
                     print(f"set tracker with border {self.border}")
-                self.mouse_tracker.start_monitoring()
-                asyncio.create_task(self.track_mouse_events())
+                    self.mouse_tracker.start_monitoring()
+                    asyncio.create_task(self.track_mouse_events())
             except Exception as e:
                 print(f"border error: {e}")
                 

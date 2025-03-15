@@ -48,10 +48,6 @@ class ScreenCursorMonitor(Observer):
             # Set the callback in the DLL
             self.mouse_lib.SetMouseCallback(self.mouse_callback)
 
-            # Start a timer to enable the mouse after 30 seconds
-            timer = threading.Timer(25, lambda: (self.mouse_lib.EnableMouse(True), self.on_switch_monitor()))
-            timer.start()
-
 
     def update(self, direction):
         if self.border == direction:

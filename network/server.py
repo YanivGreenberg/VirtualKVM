@@ -5,6 +5,7 @@ from monitor import ScreenCursorMonitor
 from edge_detector import Direction
 from position import  get_full_screen_roi, calculate_mouse_switch_position
 import json
+import socket
 
 class Server:
     def __init__(self, host='0.0.0.0', port=5555):
@@ -83,7 +84,7 @@ class Server:
                     writer.write(mouse_set_data)
                     await writer.drain()
                 #... handle other data types.
-                await asyncio.sleep(0.01)
+                await asyncio.sleep(0.001)
         except asyncio.CancelledError:
             pass
         except Exception as e:
@@ -103,13 +104,18 @@ class Server:
             except json.JSONDecodeError:
                 print("[!] Error: Received invalid region data.")
 
-        elif request == "switch":
+        elif request == "switch" and self.mouse_tracker.block_mouse:
             self.mouse_tracker.on_switch_monitor()
         else:
             print(f"[*] Unknown request: {request}")
 
     async def start(self):
         self.server = await asyncio.start_server(self.handle_client, self.host, self.port)
+
+        for sock in self.server.sockets:
+            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)  # Ensure instant packet sending
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1024)   # Keep buffer small (but OS may round up)
+
         addr = self.server.sockets[0].getsockname()
         print(f"[*] Server listening on {addr}")
 

@@ -32,7 +32,7 @@ class ScreenCursorMonitor(Observer):
             if os.path.exists(dll_name):
                 print(f"'{dll_name}' exists.")
             else:
-                print(f"'{dll_name}' does not exist.")
+                print(f"'{dll_name}' does not exist.")           
             dll_handle = win32api.LoadLibraryEx(dll_name, 0, win32con.LOAD_WITH_ALTERED_SEARCH_PATH)
             self.mouse_lib = ctypes.WinDLL(dll_name, handle=dll_handle)
 
@@ -63,7 +63,7 @@ class ScreenCursorMonitor(Observer):
         """Runs detection in a background thread."""
         if not self.running:
             self.running = True
-            self.listener = mouse.Listener(on_move=self.on_mouse_move)
+            self.listener = mouse.Listener(on_move=self.on_mouse_move, on_click=self.on_mouse_click)
             self.listener.start()
             print("Monitoring started...")
 
@@ -90,6 +90,12 @@ class ScreenCursorMonitor(Observer):
             
         velocity_x, velocity_y = self.cursor_tracker.get_velocity(x, y)
         self.screen_edge_detector.detect_moving_to_edge(x, y, velocity_x, velocity_y)
+    
+
+    def on_mouse_click(self, x, y, button, pressed):
+        if self.block_mouse and pressed:  # Optional: Only register when button is pressed
+            self.loop.call_soon_threadsafe(self.data_queue.put_nowait, ("mouse_click",button))
+
 
 
     def on_switch_monitor(self):

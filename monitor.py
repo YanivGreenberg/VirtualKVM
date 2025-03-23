@@ -48,6 +48,14 @@ class ScreenCursorMonitor(Observer):
             # Set the callback in the DLL
             self.mouse_lib.SetMouseCallback(self.mouse_callback)
 
+            # Fix for mouse click callback
+            CALLBACK_TYPE_CLICK = ctypes.CFUNCTYPE(None, ctypes.c_int)
+            self.mouse_click_callback_func = self.on_mouse_click  
+            self.mouse_click_callback = CALLBACK_TYPE_CLICK(self.mouse_click_callback_func)  
+
+            # Set the click callback in the DLL
+            self.mouse_lib.SetMouseClickCallback(self.mouse_click_callback)
+
 
     def update(self, direction):
         if self.border == direction:
@@ -63,7 +71,7 @@ class ScreenCursorMonitor(Observer):
         """Runs detection in a background thread."""
         if not self.running:
             self.running = True
-            self.listener = mouse.Listener(on_move=self.on_mouse_move, on_click=self.on_mouse_click)
+            self.listener = mouse.Listener(on_move=self.on_mouse_move)
             self.listener.start()
             print("Monitoring started...")
 
@@ -85,16 +93,18 @@ class ScreenCursorMonitor(Observer):
             else:
                 print(f"x:{x},y:{y}")
                 delta_x, delta_y = self.cursor_tracker.delta_x_and_y(self.locked_x,self.locked_y,x,y)
-                if abs(delta_x) > 1 or abs(delta_y) > 1:
-                    self.loop.call_soon_threadsafe(self.data_queue.put_nowait, ("mouse_move", delta_x, delta_y))
+                self.loop.call_soon_threadsafe(self.data_queue.put_nowait, ("mouse_move", delta_x, delta_y))
             
         velocity_x, velocity_y = self.cursor_tracker.get_velocity(x, y)
         self.screen_edge_detector.detect_moving_to_edge(x, y, velocity_x, velocity_y)
     
 
-    def on_mouse_click(self, x, y, button, pressed):
-        if self.block_mouse and pressed:  # Optional: Only register when button is pressed
+    def on_mouse_click(self,button):
+        if self.block_mouse:  
+            print("Click")
             self.loop.call_soon_threadsafe(self.data_queue.put_nowait, ("mouse_click",button))
+
+        
 
 
 

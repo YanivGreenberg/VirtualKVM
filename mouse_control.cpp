@@ -6,21 +6,37 @@ HHOOK keyboardHook;
 
 typedef void (*MouseCallback)(int, int); // Define a function pointer type for the callback
 
+typedef void (*MouseClickCallback)(int);
+
 MouseCallback callback = nullptr; // This will hold the Python callback
+MouseClickCallback clickCallback = nullptr;
 
 bool is_locked = false;
+
+#define LEFT_CLICK 1
+#define RIGHT_CLICK 2
+#define MIDDLE_CLICK 3
 
 
 LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
     if (nCode >= 0) {
-        if (wParam == WM_MOUSEMOVE) {
-            MOUSEHOOKSTRUCT* pMouseHook = (MOUSEHOOKSTRUCT*)lParam;
-            int mouseX = pMouseHook->pt.x;
-            int mouseY = pMouseHook->pt.y;
+        MOUSEHOOKSTRUCT* pMouseHook = (MOUSEHOOKSTRUCT*)lParam;
+        int mouseX = pMouseHook->pt.x;
+        int mouseY = pMouseHook->pt.y;
 
-            if (callback) {
-                callback(mouseX, mouseY);
-            }   
+        if (wParam == WM_MOUSEMOVE && callback) {
+            callback(mouseX, mouseY);
+        } 
+        else if (wParam == WM_LBUTTONDOWN || wParam == WM_RBUTTONDOWN || wParam == WM_MBUTTONDOWN) {
+            if (clickCallback) {
+                int buttonType = 0;
+                if (wParam == WM_LBUTTONDOWN) buttonType = 1;  // Left Click
+                if (wParam == WM_RBUTTONDOWN) buttonType = 2;  // Right Click
+                if (wParam == WM_MBUTTONDOWN) buttonType = 3;  // Middle Click
+                
+                std::cout << "Mouse Click Event: " << buttonType << std::endl;  // Debug print
+                clickCallback(buttonType);
+            }
         }
     }
     if (is_locked) { // check if mouse should be locked
@@ -42,6 +58,9 @@ extern "C" __declspec(dllexport) void SetMouseCallback(MouseCallback cb) {
     callback = cb;  
 }
 
+extern "C" __declspec(dllexport) void SetMouseClickCallback(MouseClickCallback cb) {
+    clickCallback = cb;
+}
 
 extern "C" __declspec(dllexport) void EnableMouse(bool enable) {
     if (enable) {

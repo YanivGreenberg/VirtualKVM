@@ -32,7 +32,7 @@ class ScreenCursorMonitor(Observer):
             if os.path.exists(dll_name):
                 print(f"'{dll_name}' exists.")
             else:
-                print(f"'{dll_name}' does not exist.")
+                print(f"'{dll_name}' does not exist.")           
             dll_handle = win32api.LoadLibraryEx(dll_name, 0, win32con.LOAD_WITH_ALTERED_SEARCH_PATH)
             self.mouse_lib = ctypes.WinDLL(dll_name, handle=dll_handle)
 
@@ -47,6 +47,14 @@ class ScreenCursorMonitor(Observer):
 
             # Set the callback in the DLL
             self.mouse_lib.SetMouseCallback(self.mouse_callback)
+
+            # Fix for mouse click callback
+            CALLBACK_TYPE_CLICK = ctypes.CFUNCTYPE(None, ctypes.c_int)
+            self.mouse_click_callback_func = self.on_mouse_click  
+            self.mouse_click_callback = CALLBACK_TYPE_CLICK(self.mouse_click_callback_func)  
+
+            # Set the click callback in the DLL
+            self.mouse_lib.SetMouseClickCallback(self.mouse_click_callback)
 
 
     def update(self, direction):
@@ -85,11 +93,19 @@ class ScreenCursorMonitor(Observer):
             else:
                 print(f"x:{x},y:{y}")
                 delta_x, delta_y = self.cursor_tracker.delta_x_and_y(self.locked_x,self.locked_y,x,y)
-                if abs(delta_x) > 1 or abs(delta_y) > 1:
-                    self.loop.call_soon_threadsafe(self.data_queue.put_nowait, ("mouse_move", delta_x, delta_y))
+                self.loop.call_soon_threadsafe(self.data_queue.put_nowait, ("mouse_move", delta_x, delta_y))
             
         velocity_x, velocity_y = self.cursor_tracker.get_velocity(x, y)
         self.screen_edge_detector.detect_moving_to_edge(x, y, velocity_x, velocity_y)
+    
+
+    def on_mouse_click(self,button):
+        if self.block_mouse:  
+            print("Click")
+            self.loop.call_soon_threadsafe(self.data_queue.put_nowait, ("mouse_click",button))
+
+        
+
 
 
     def on_switch_monitor(self):

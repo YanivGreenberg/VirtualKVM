@@ -70,7 +70,7 @@ class Client:
         elif message.startswith("mouse_click:"):
             try:
                 button = message[len("mouse_click:"):]
-                if button == '[1]':
+                if button == '[1]': 
                     self.mouse_controller.click(Button.left)  
                 elif button == '[2]':
                     self.mouse_controller.click(Button.right)  
@@ -82,8 +82,21 @@ class Client:
                 print(f"Error clicking mouse: {e}")
         elif message.startswith("key_pressed:"):
             try:
-                key = message[len("key_pressed:"):]
-                self.keyboard_controller.press(f'{key}')
+                data = message[len("key_pressed:"):]  # Extract data after the prefix
+                key_str, is_pressed_str, is_upper_str = data.split(',')  # Split into two parts
+                key = int(key_str.strip())  # Convert first part to int
+                is_pressed = is_pressed_str.strip() == "True"
+                is_upper = is_upper_str.strip() == "True"
+
+                if not is_upper:
+                    key_char = chr(key).lower()
+                else:
+                    key_char = chr(key).upper()
+
+                if is_pressed:
+                    self.keyboard_controller.press(key_char)
+                else:
+                    self.keyboard_controller.release(key_char)
             except Exception as e:
                 print(f"Error pressing key: {e}")
             

@@ -1,6 +1,6 @@
 # client.py (asyncio)
 import asyncio
-from pynput.mouse import Controller
+from pynput.mouse import Controller, Button
 from position import  get_full_screen_roi
 import json
 from edge_detector import Direction, ScreenEdgeDetector
@@ -68,12 +68,12 @@ class Client:
         elif message.startswith("mouse_click:"):
             try:
                 button = message[len("mouse_click:"):]
-                if button == "1":
-                    self.mouse_controller.click(self.mouse_controller.Button.left)
-                elif button == "2":
-                    self.mouse_controller.click(self.mouse_controller.Button.right)
-                elif button == "3":
-                    self.mouse_controller.click(self.mouse_controller.Button.middle)
+                if button == '[1]':
+                    self.mouse_controller.click(Button.left)  
+                elif button == '[2]':
+                    self.mouse_controller.click(Button.right)  
+                elif button == '[3]':
+                    self.mouse_controller.click(Button.middle)
                 else:
                     print("Invalid button click data from server.")
             except Exception as e:

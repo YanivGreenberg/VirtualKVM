@@ -8,7 +8,7 @@ typedef void (*MouseCallback)(int, int); // Define a function pointer type for t
 
 typedef void (*MouseClickCallback)(int);
 
-typedef void (*KeyboardCallback)(int, bool);
+typedef void (*KeyboardCallback)(int, bool, bool);
 
 MouseCallback callback = nullptr; // This will hold the Python callback
 MouseClickCallback clickCallback = nullptr;
@@ -55,9 +55,20 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
         int keyCode = pKeyboard->vkCode;
         bool isPressed = (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN);
 
-        std::cout << "Key Event: " << keyCode << " Pressed: " << isPressed << std::endl;  // Debug print
-        keyboardCallback(keyCode, isPressed);
+        // Check if Shift is held down
+        bool shiftPressed = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+
+        // Check if Caps Lock is on
+        bool capsLockOn = (GetKeyState(VK_CAPITAL) & 0x0001) != 0;
+
+        // Determine if the key is uppercase
+        bool isUppercase = (capsLockOn ^ shiftPressed);  // XOR: Caps Lock and Shift cancel each other
+
+
+        // Call Python Callback
+        keyboardCallback(keyCode, isPressed, isUppercase);
     }
+
     if (is_locked) {
         return 1; // Block keyboard input
     }

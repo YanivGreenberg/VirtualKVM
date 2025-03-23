@@ -89,8 +89,8 @@ class Server:
                     writer.write(mouse_data)
                     await writer.drain()
                 elif data_type == "key_pressed":
-                    key,is_pressed = data_values
-                    event_data = f"key_pressed:{key},{is_pressed}\n".encode()
+                    key,is_pressed,is_upper = data_values
+                    event_data = f"key_pressed:{key},{is_pressed},{is_upper}\n".encode()
                     writer.write(event_data)
                     await writer.drain()
                 #... handle other data types.

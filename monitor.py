@@ -56,7 +56,7 @@ class ScreenCursorMonitor(Observer):
             # Set the click callback in the DLL
             self.mouse_lib.SetMouseClickCallback(self.mouse_click_callback)
 
-            CALLBACK_TYPE_KEY = ctypes.CFUNCTYPE(None, ctypes.c_int, ctypes.c_bool)
+            CALLBACK_TYPE_KEY = ctypes.CFUNCTYPE(None, ctypes.c_int, ctypes.c_bool, ctypes.c_bool)
             self.key_pressed_callback_func = self.on_key_pressed
             self.key_pressed_callback = CALLBACK_TYPE_KEY(self.key_pressed_callback_func)  
 
@@ -112,12 +112,12 @@ class ScreenCursorMonitor(Observer):
             self.loop.call_soon_threadsafe(self.data_queue.put_nowait, ("mouse_click",button))
 
 
-    def on_key_pressed(self, key_code, is_pressed):
+    def on_key_pressed(self, key_code, is_pressed,is_uppercase):
         if self.block_mouse:  
             action = "pressed" if is_pressed else "released"
             print(f"Key {key_code} {action}")
             # Send the key event to the queue
-            self.loop.call_soon_threadsafe(self.data_queue.put_nowait, ("key_pressed", key_code, is_pressed))
+            self.loop.call_soon_threadsafe(self.data_queue.put_nowait, ("key_pressed", key_code, is_pressed, is_uppercase))
     
 
 

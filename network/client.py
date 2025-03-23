@@ -68,11 +68,11 @@ class Client:
         elif message.startswith("mouse_click:"):
             try:
                 button = message[len("mouse_click:"):]
-                if button == "Button.left":
+                if button == "1":
                     self.mouse_controller.click(self.mouse_controller.Button.left)
-                elif button == "Button.right":
+                elif button == "2":
                     self.mouse_controller.click(self.mouse_controller.Button.right)
-                elif button == "Button.middle":
+                elif button == "3":
                     self.mouse_controller.click(self.mouse_controller.Button.middle)
                 else:
                     print("Invalid button click data from server.")

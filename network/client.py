@@ -1,15 +1,17 @@
 # client.py (asyncio)
 import asyncio
-from pynput.mouse import Controller, Button
+from pynput.mouse import Controller as MouseController, Button
 from position import  get_full_screen_roi
 import json
 from edge_detector import Direction, ScreenEdgeDetector
 from monitor import ScreenCursorMonitor
+from pynput.keyboard import Key, Controller as KeyboardController
 
 
 class Client:
     def __init__(self):
-        self.mouse_controller = Controller()
+        self.mouse_controller = MouseController()
+        self.keyboard_controller = KeyboardController()
         self.border = None
         self.mouse_tracker = None
         self.region = get_full_screen_roi()
@@ -78,6 +80,13 @@ class Client:
                     print("Invalid button click data from server.")
             except Exception as e:
                 print(f"Error clicking mouse: {e}")
+        elif message.startswith("key_pressed:"):
+            try:
+                key = message[len("key_pressed:"):]
+                self.keyboard_controller.press(f'{key}')
+            except Exception as e:
+                print(f"Error pressing key: {e}")
+            
         elif message.startswith("border:"):
             try:
                 border = message[len("border:"):]

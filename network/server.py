@@ -88,6 +88,11 @@ class Server:
                     mouse_data = f"mouse_click:{button}\n".encode()
                     writer.write(mouse_data)
                     await writer.drain()
+                elif data_type == "key_pressed":
+                    key,is_pressed = data_values
+                    event_data = f"key_pressed:{key},{is_pressed}\n".encode()
+                    writer.write(event_data)
+                    await writer.drain()
                 #... handle other data types.
                 await asyncio.sleep(0.001)
         except asyncio.CancelledError:

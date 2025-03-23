@@ -8,8 +8,11 @@ typedef void (*MouseCallback)(int, int); // Define a function pointer type for t
 
 typedef void (*MouseClickCallback)(int);
 
+typedef void (*KeyboardCallback)(int, bool);
+
 MouseCallback callback = nullptr; // This will hold the Python callback
 MouseClickCallback clickCallback = nullptr;
+KeyboardCallback keyboardCallback = nullptr; 
 
 bool is_locked = false;
 
@@ -47,8 +50,16 @@ LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
 
 
 LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
-    if (is_locked && nCode >= 0) {
-        return 1;
+    if (nCode >= 0 && keyboardCallback) {
+        KBDLLHOOKSTRUCT* pKeyboard = (KBDLLHOOKSTRUCT*)lParam;
+        int keyCode = pKeyboard->vkCode;
+        bool isPressed = (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN);
+
+        std::cout << "Key Event: " << keyCode << " Pressed: " << isPressed << std::endl;  // Debug print
+        keyboardCallback(keyCode, isPressed);
+    }
+    if (is_locked) {
+        return 1; // Block keyboard input
     }
     return CallNextHookEx(keyboardHook, nCode, wParam, lParam);
 }
@@ -60,6 +71,10 @@ extern "C" __declspec(dllexport) void SetMouseCallback(MouseCallback cb) {
 
 extern "C" __declspec(dllexport) void SetMouseClickCallback(MouseClickCallback cb) {
     clickCallback = cb;
+}
+
+extern "C" __declspec(dllexport) void SetKeyboardCallback(KeyboardCallback cb) {
+    keyboardCallback = cb;
 }
 
 extern "C" __declspec(dllexport) void EnableMouse(bool enable) {

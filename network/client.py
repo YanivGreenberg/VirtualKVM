@@ -88,15 +88,35 @@ class Client:
                 is_pressed = is_pressed_str.strip() == "True"
                 is_upper = is_upper_str.strip() == "True"
 
-                if not is_upper:
-                    key_char = chr(key).lower()
+                special_keys = {
+                160: Key.shift_l,  # Shift
+                161: Key.shift_r,
+                162: Key.ctrl_l,   # Ctrl
+                163: Key.ctrl_r,
+                164: Key.alt_l,    # Alt
+                165: Key.alt_r,
+                9: Key.tab,     # Tab
+                20: Key.caps_lock,  # Caps Lock
+                27: Key.esc,    # Escape
+                32: Key.space,  # Space
+                13: Key.enter,  # Enter
+                8: Key.backspace,  # Backspace
+                }
+
+                if key in special_keys:
+                    key_char = special_keys[key]
                 else:
-                    key_char = chr(key).upper()
+                    key_char = chr(key).upper() if is_upper else chr(key).lower()
 
                 if is_pressed:
                     self.keyboard_controller.press(key_char)
                 else:
-                    self.keyboard_controller.release(key_char)
+                    self.keyboard_controller.release(key_char)     
+
+                    if is_pressed:
+                        self.keyboard_controller.press(key_char)
+                    else:
+                        self.keyboard_controller.release(key_char)
             except Exception as e:
                 print(f"Error pressing key: {e}")
             

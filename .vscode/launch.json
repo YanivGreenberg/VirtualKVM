@@ -8,8 +8,8 @@
             "name": "Python Debugger: Current File",
             "type": "debugpy",
             "request": "launch",
-            "module": "network.server",
-            // "program": "${workspaceFolder}/network/server.py",
+            //"module": "network.server",
+            "program": "${workspaceFolder}/GUI.py",
             "console": "integratedTerminal"
         }
     ]

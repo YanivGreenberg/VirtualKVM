@@ -8,8 +8,11 @@ typedef void (*MouseCallback)(int, int); // Define a function pointer type for t
 
 typedef void (*MouseClickCallback)(int);
 
+typedef void (*KeyboardCallback)(int, bool, bool);
+
 MouseCallback callback = nullptr; // This will hold the Python callback
 MouseClickCallback clickCallback = nullptr;
+KeyboardCallback keyboardCallback = nullptr; 
 
 bool is_locked = false;
 
@@ -47,8 +50,27 @@ LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
 
 
 LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
-    if (is_locked && nCode >= 0) {
-        return 1;
+    if (nCode >= 0 && keyboardCallback) {
+        KBDLLHOOKSTRUCT* pKeyboard = (KBDLLHOOKSTRUCT*)lParam;
+        int keyCode = pKeyboard->vkCode;
+        bool isPressed = (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN);
+
+        // Check if Shift is held down
+        bool shiftPressed = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+
+        // Check if Caps Lock is on
+        bool capsLockOn = (GetKeyState(VK_CAPITAL) & 0x0001) != 0;
+
+        // Determine if the key is uppercase
+        bool isUppercase = (capsLockOn ^ shiftPressed);  // XOR: Caps Lock and Shift cancel each other
+
+
+        // Call Python Callback
+        keyboardCallback(keyCode, isPressed, isUppercase);
+    }
+
+    if (is_locked) {
+        return 1; // Block keyboard input
     }
     return CallNextHookEx(keyboardHook, nCode, wParam, lParam);
 }
@@ -60,6 +82,10 @@ extern "C" __declspec(dllexport) void SetMouseCallback(MouseCallback cb) {
 
 extern "C" __declspec(dllexport) void SetMouseClickCallback(MouseClickCallback cb) {
     clickCallback = cb;
+}
+
+extern "C" __declspec(dllexport) void SetKeyboardCallback(KeyboardCallback cb) {
+    keyboardCallback = cb;
 }
 
 extern "C" __declspec(dllexport) void EnableMouse(bool enable) {

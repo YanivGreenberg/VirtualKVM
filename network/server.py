@@ -8,14 +8,18 @@ import json
 import socket
 
 class Server:
-    def __init__(self, host='0.0.0.0', port=5555):
-        self.host = host
-        self.port = port
+    def __init__(self, config):
+        self.host = config.get("host", "0.0.0.0")
+        self.port = config.get("port", 5555)
         self.server = None
-        self.data_queue = asyncio.Queue()  # Initialize the data queue
+        self.data_queue = asyncio.Queue()
+
         self.region = get_full_screen_roi()
-        self.mouse_tracker = ScreenCursorMonitor(self.region, Direction.LEFT, self.data_queue, True)
+        direction = Direction[config.get("direction", "LEFT").upper()]
+
+        self.mouse_tracker = ScreenCursorMonitor(self.region, direction, self.data_queue, True)
         ScreenEdgeDetector.attach(self.mouse_tracker)
+
         self.client_connected = False 
         self.client_regin = None
 
@@ -88,6 +92,11 @@ class Server:
                     mouse_data = f"mouse_click:{button}\n".encode()
                     writer.write(mouse_data)
                     await writer.drain()
+                elif data_type == "key_pressed":
+                    key,is_pressed,is_upper = data_values
+                    event_data = f"key_pressed:{key},{is_pressed},{is_upper}\n".encode()
+                    writer.write(event_data)
+                    await writer.drain()
                 #... handle other data types.
                 await asyncio.sleep(0.001)
         except asyncio.CancelledError:
@@ -127,21 +136,19 @@ class Server:
         async with self.server:
             await self.server.serve_forever()
 
-    async def stop(self):
-        if self.server:
-            self.server.close()
-            await self.server.wait_closed()
-            print("[*] Server stopped.")
-        if self.client_connected:
-            self.mouse_tracker.stop_monitoring() #stop monitoring only if client was connected.
-
-async def main():
-    server = Server()
+async def run_server():
+    config = load_config()
+    server = Server(config)
     try:
         await server.start()
     except KeyboardInterrupt:
         print("\n[*] Keyboard interrupt received. Stopping server...")
         await server.stop()
 
+def load_config(path="server_config.json"):
+    with open(path, "r") as f:
+        return json.load(f)
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(run_server())

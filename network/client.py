@@ -29,21 +29,25 @@ class Client:
             self.reader, self.writer = await asyncio.open_connection(host, port)
             print(f"[*] Connected to server at {host}:{port}")
             self.server_connected = True
+
             message = f"region:{json.dumps(self.region)}\n".encode()
             self.writer.write(message)
             await self.writer.drain()
 
             await self.run()
-        except ConnectionRefusedError:
-            print(f"Error: Could not connect to {host}:{port}. Server may not be running.")
+
+        except (ConnectionRefusedError, asyncio.TimeoutError):
+            print(f"[!] Could not connect to {host}:{port}. Server may not be running.")
+            await self.close()
+
         except Exception as e:
-            print(f"An error occurred during connection: {e}")
+            print(f"[!] Unexpected error during connection: {e}")
             await self.close()
 
     async def run(self):
         try:
             while True:
-                data = await self.reader.readline()
+                data = await asyncio.wait_for(self.reader.readline(), timeout=10)
                 if not data:
                     print("Server disconnected.")
                     await self.close()
@@ -51,11 +55,12 @@ class Client:
                 message = data.decode().strip()
                 print(f"Server says: {message}")
                 self.handle_response(message)
-        except ConnectionResetError:
-            print("Server disconnected.")
+        except (ConnectionResetError, asyncio.IncompleteReadError, asyncio.TimeoutError):
+            print("[*] Server disconnected or not responding.")
             await self.close()
+
         except Exception as e:
-            print(f"An error occurred during receive: {e}")
+            print(f"[!] Unexpected error during receive: {e}")
             await self.close()
 
     def handle_response(self, message):

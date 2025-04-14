@@ -176,9 +176,13 @@ class Client:
 
     async def close(self):
         if hasattr(self, 'writer') and self.writer:
-            self.writer.close()
-            await self.writer.wait_closed()
+            try:
+                self.writer.close()
+                await self.writer.wait_closed()  # <- this causes the crash if server died hard
+            except (ConnectionResetError, OSError) as e:
+                print(f"[!] Error closing writer: {e}")
         print("\nClient shutting down...")
+
 
 async def run_client():
     config = load_config()

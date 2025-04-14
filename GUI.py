@@ -21,8 +21,8 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Main Menu")
-        self.geometry("400x300")
-        self.resizable(False, False)
+        self.geometry("600x400")  # Increased window size
+        self.resizable(True, True)  # Allow window resizing
 
         self.container = tk.Frame(self)
         self.container.pack(fill="both", expand=True)
@@ -58,7 +58,6 @@ class App(tk.Tk):
         self.destroy()
 
 
-
 class MainPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -66,8 +65,9 @@ class MainPage(tk.Frame):
 
         tk.Label(self, text="Choose Mode", font=("Arial", 18)).pack(pady=20)
 
-        tk.Button(self, text="Server", width=20, height=2, command=lambda: controller.show_frame(ServerPage)).pack(pady=10)
-        tk.Button(self, text="Client", width=20, height=2, command=lambda: controller.show_frame(ClientPage)).pack(pady=10)
+        # Adjust buttons to be slightly bigger but not stretched too wide
+        tk.Button(self, text="Server", height=2, command=lambda: controller.show_frame(ServerPage), font=("Arial", 14)).pack(pady=10, padx=40, fill="x")
+        tk.Button(self, text="Client", height=2, command=lambda: controller.show_frame(ClientPage), font=("Arial", 14)).pack(pady=10, padx=40, fill="x")
 
 
 class ServerPage(tk.Frame):
@@ -81,20 +81,20 @@ class ServerPage(tk.Frame):
         self.direction_var = tk.StringVar(value="LEFT")
         directions = ["LEFT", "RIGHT", "UP", "DOWN"]
         ttk.Label(self, text="Select Direction").pack(pady=(10, 2))
-        ttk.OptionMenu(self, self.direction_var, directions[0], *directions).pack()
+        ttk.OptionMenu(self, self.direction_var, directions[0], *directions).pack(fill="x", padx=40)
 
         # Start button
-        tk.Button(self, text="Start", command=self.start_server).pack(pady=20)
+        tk.Button(self, text="Start", command=self.start_server, font=("Arial", 14), height=2).pack(pady=20, padx=40, fill="x")
 
-        self.stop_button = tk.Button(self, text="Stop", command=self.stop_server, state="disabled")
-        self.stop_button.pack(pady=10)
+        self.stop_button = tk.Button(self, text="Stop", command=self.stop_server, state="disabled", font=("Arial", 14), height=2)
+        self.stop_button.pack(pady=10, padx=40, fill="x")
 
         # Label to show IP after pressing start
         self.ip_label = tk.Label(self, text="", font=("Courier", 12))
         self.ip_label.pack(pady=10)
 
         # Back to main menu
-        tk.Button(self, text="← Back", command=lambda: controller.show_frame(MainPage)).pack(side="bottom", pady=10)
+        tk.Button(self, text="← Back", command=lambda: controller.show_frame(MainPage), font=("Arial", 14), height=2).pack(pady=10, padx=40, fill="x")
 
         self.server_process = None
 
@@ -113,7 +113,6 @@ class ServerPage(tk.Frame):
         self.server_process = subprocess.Popen(["python", "-m", "network.server"])  
 
         self.stop_button.config(state="normal") 
-
 
     def stop_server(self):
         if self.server_process:
@@ -138,13 +137,25 @@ class ClientPage(tk.Frame):
         # Entry for the server IP
         self.ip_entry = tk.Entry(self, font=("Arial", 14), width=25)
         self.ip_entry.pack(pady=10)
-        self.ip_entry.insert(0, "Enter Server IP")
+        self.ip_entry.insert(0, "Enter Server IP")  # Placeholder text
+
+        # Remove placeholder text when the user clicks the Entry box
+        self.ip_entry.bind("<FocusIn>", self.on_focus_in)
+        self.ip_entry.bind("<FocusOut>", self.on_focus_out)
 
         # Connect button
-        tk.Button(self, text="Connect", width=20, height=2, command=self.connect_client).pack(pady=20)
+        tk.Button(self, text="Connect", command=self.connect_client, font=("Arial", 14), height=2).pack(pady=20, padx=40, fill="x")
 
         # Back to main menu
-        tk.Button(self, text="← Back", command=lambda: controller.show_frame(MainPage)).pack(side="bottom", pady=10)
+        tk.Button(self, text="← Back", command=lambda: controller.show_frame(MainPage), font=("Arial", 14), height=2).pack(pady=10, padx=40, fill="x")
+
+    def on_focus_in(self, event):
+        if self.ip_entry.get() == "Enter Server IP":
+            self.ip_entry.delete(0, tk.END)  # Clear the placeholder when clicked
+
+    def on_focus_out(self, event):
+        if self.ip_entry.get() == "":
+            self.ip_entry.insert(0, "Enter Server IP")  # Reset placeholder text if no input
 
     def connect_client(self):
         server_ip = self.ip_entry.get()

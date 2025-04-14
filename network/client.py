@@ -18,8 +18,14 @@ class Client:
         self.server_connected = False
         self.data_queue = asyncio.Queue()
 
-    async def connect(self, host='192.168.1.111', port=5555):
+    async def connect(self,config):
         try:
+            host = config.get('host')  
+            port = config.get('port', 5555)  
+            if not host:
+                print("Error: No host (IP address) provided in config.")
+                return
+            
             self.reader, self.writer = await asyncio.open_connection(host, port)
             print(f"[*] Connected to server at {host}:{port}")
             self.server_connected = True
@@ -169,9 +175,14 @@ class Client:
             await self.writer.wait_closed()
         print("\nClient shutting down...")
 
-async def main():
+async def run_client():
+    config = load_config()
     client = Client()
-    await client.connect()
+    await client.connect(config)
+
+def load_config(path="client_config.json"):
+    with open(path, "r") as f:
+        return json.load(f)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(run_client())

@@ -1,5 +1,3 @@
-import time
-import threading
 from edge_detector import ScreenEdgeDetector
 from observer import Observer
 from mouse_tracker import MouseTracker

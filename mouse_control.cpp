@@ -10,9 +10,14 @@ typedef void (*MouseClickCallback)(int);
 
 typedef void (*KeyboardCallback)(int, bool, bool);
 
+typedef void (*MouseScrollCallback)(int);  
+
+
 MouseCallback callback = nullptr; // This will hold the Python callback
 MouseClickCallback clickCallback = nullptr;
 KeyboardCallback keyboardCallback = nullptr; 
+MouseScrollCallback scrollCallback = nullptr;
+
 
 bool is_locked = false;
 
@@ -41,6 +46,15 @@ LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
                 clickCallback(buttonType);
             }
         }
+        else if (wParam == WM_MOUSEWHEEL && scrollCallback) {
+            MSLLHOOKSTRUCT* pMouseHookLL = (MSLLHOOKSTRUCT*)lParam;
+            short delta = (short)HIWORD(pMouseHookLL->mouseData);
+        
+            std::cout << "Mouse Scroll Event: " << delta << std::endl;
+            scrollCallback(delta);
+        }
+        
+        
     }
     if (is_locked) { // check if mouse should be locked
         return 1; // Consume the event, preventing movement.
@@ -87,6 +101,10 @@ extern "C" __declspec(dllexport) void SetMouseClickCallback(MouseClickCallback c
 extern "C" __declspec(dllexport) void SetKeyboardCallback(KeyboardCallback cb) {
     keyboardCallback = cb;
 }
+extern "C" __declspec(dllexport) void SetMouseScrollCallback(MouseScrollCallback cb) {
+    scrollCallback = cb;
+}
+
 
 extern "C" __declspec(dllexport) void EnableMouse(bool enable) {
     if (enable) {

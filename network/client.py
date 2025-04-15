@@ -151,6 +151,21 @@ class Client:
                     asyncio.create_task(self.track_mouse_events())
             except Exception as e:
                 print(f"border error: {e}")
+        
+        elif message.startswith("mouse_scroll:"):
+            try:
+                # Extract the scroll direction (1 for up, -1 for down)
+                scroll_direction = int(message[len("mouse_scroll:"):].strip())
+                if scroll_direction == 1:
+                    self.mouse_controller.scroll_up()  # Define this function based on your needs
+                elif scroll_direction == -1:
+                    self.mouse_controller.scroll_down()  # Define this function based on your needs
+                else:
+                    print("Invalid scroll direction data from server.")
+            except ValueError:
+                print("Invalid scroll data from server.")
+            except Exception as e:
+                print(f"Error handling scroll: {e}")
                 
 
     async def track_mouse_events(self):

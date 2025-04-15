@@ -4,6 +4,9 @@ import socket
 import json
 import os
 import subprocess
+import threading
+from pystray import Icon, Menu, MenuItem
+from PIL import Image, ImageDraw
 
 
 def get_local_ip():
@@ -16,6 +19,20 @@ def get_local_ip():
         return ip
     except:
         return "Unavailable"
+
+
+def create_tray_icon():
+    # Create a basic icon (green square)
+    image = Image.new('RGB', (64, 64), color=(0, 0, 0))
+    draw = ImageDraw.Draw(image)
+    draw.rectangle([16, 16, 48, 48], fill=(0, 255, 0))
+
+    def on_quit(icon, item):
+        icon.stop()
+
+    icon = Icon("ClientConnected", image, "Connected to Server", menu=Menu(MenuItem("Quit", on_quit)))
+    icon.run()  # Blocking call
+
 
 class App(tk.Tk):
     def __init__(self):
@@ -172,6 +189,8 @@ class ClientPage(tk.Frame):
 
             # Here you can run client code or subprocess to connect to the server if needed
             subprocess.Popen(["python", "-m", "network.client"])
+
+            threading.Thread(target=create_tray_icon, daemon=True).start()
         else:
             messagebox.showwarning("Invalid IP", "Please enter a valid server IP.")
 

@@ -156,10 +156,10 @@ class Client:
             try:
                 # Extract the scroll direction (1 for up, -1 for down)
                 scroll_direction = int(message[len("mouse_scroll:"):].strip())
-                if scroll_direction == 1:
-                    self.mouse_controller.scroll_up()  # Define this function based on your needs
-                elif scroll_direction == -1:
-                    self.mouse_controller.scroll_down()  # Define this function based on your needs
+                if scroll_direction >= 1:
+                    self.mouse_controller.scroll(0, 2) # Define this function based on your needs
+                elif scroll_direction <= -1:
+                    self.mouse_controller.scroll(0, -2)  # Define this function based on your needs
                 else:
                     print("Invalid scroll direction data from server.")
             except ValueError:

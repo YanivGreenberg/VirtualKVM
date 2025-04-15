@@ -97,6 +97,12 @@ class Server:
                     event_data = f"key_pressed:{key},{is_pressed},{is_upper}\n".encode()
                     writer.write(event_data)
                     await writer.drain()
+                elif data_type == "mouse_scroll":
+                    scroll_direction = data_values[0]  # Assuming scroll data is in the first element
+                    scroll_data = f"mouse_scroll:{scroll_direction}\n".encode()
+                    print(f"Server sending scroll: {scroll_direction}")  # Debugging print statement
+                    writer.write(scroll_data)
+                    await writer.drain()
                 #... handle other data types.
                 await asyncio.sleep(0.001)
         except asyncio.CancelledError:

@@ -61,6 +61,14 @@ class ScreenCursorMonitor(Observer):
             # Set the click callback in the DLL
             self.mouse_lib.SetKeyboardCallback(self.key_pressed_callback)
 
+            CALLBACK_TYPE_SCROLL = ctypes.CFUNCTYPE(None, ctypes.c_int)
+            self.mouse_scroll_callback_func = self.on_mouse_scroll
+            self.mouse_scroll_callback = CALLBACK_TYPE_SCROLL(self.mouse_scroll_callback_func)
+
+            # Set the scroll callback in the DLL
+            self.mouse_lib.SetMouseScrollCallback(self.mouse_scroll_callback)
+
+
 
     def update(self, direction):
         if self.border == direction:
@@ -117,6 +125,11 @@ class ScreenCursorMonitor(Observer):
             # Send the key event to the queue
             self.loop.call_soon_threadsafe(self.data_queue.put_nowait, ("key_pressed", key_code, is_pressed, is_uppercase))
     
+
+    def on_mouse_scroll(self, delta):
+        if self.block_mouse:
+            print(f"Scroll: {delta}")
+            self.loop.call_soon_threadsafe(self.data_queue.put_nowait, ("mouse_scroll", delta))
 
 
 

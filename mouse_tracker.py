@@ -1,5 +1,4 @@
 import time
-import pyautogui
 
 
 class MouseTracker:

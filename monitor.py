@@ -25,12 +25,14 @@ class ScreenCursorMonitor(Observer):
             self.block_mouse = False
             self.locked_x = 0
             self.locked_y = 0
-            # Load the DLL
-            dll_name = r'mouse_control.dll'
+            # Load the DLL using an absolute path
+            dll_name = os.path.abspath('mouse_control.dll')
+            
             if os.path.exists(dll_name):
-                print(f"'{dll_name}' exists.")
+                print(f"Attempting to load DLL from: {dll_name}")
             else:
-                print(f"'{dll_name}' does not exist.")           
+                print(f"CRITICAL ERROR: Could not find {dll_name}")
+                
             dll_handle = win32api.LoadLibraryEx(dll_name, 0, win32con.LOAD_WITH_ALTERED_SEARCH_PATH)
             self.mouse_lib = ctypes.WinDLL(dll_name, handle=dll_handle)
 
